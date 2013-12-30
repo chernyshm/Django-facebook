@@ -46,7 +46,7 @@ if settings.DEBUG or getattr(settings, 'TESTING', False):
 from django_facebook import admin
 
 # putting this here instead of models.py reduces issues with import ordering
-if getattr(settings, 'AUTH_PROFILE_MODULE', None) == 'django_facebook.FacebookProfile':
+if getattr(settings, 'FACEBOOK_PROFILE_MODULE', None) == 'django_facebook.FacebookProfile':
     '''
     If we are using the django facebook profile model, create the model
     and connect it to the user create signal

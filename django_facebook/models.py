@@ -340,7 +340,7 @@ class FacebookProfile(FacebookProfileModel):
     '''
     Not abstract version of the facebook profile model
     Use this by setting
-    AUTH_PROFILE_MODULE = 'django_facebook.FacebookProfile'
+    FACEBOOK_PROFILE_MODULE = 'django_facebook.FacebookProfile'
     '''
     user = models.OneToOneField(get_user_model_setting())
 

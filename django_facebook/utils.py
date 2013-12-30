@@ -35,7 +35,7 @@ def get_profile_model():
     Get the profile model if present otherwise return None
     '''
     model = None
-    profile_string = getattr(settings, 'AUTH_PROFILE_MODULE', None)
+    profile_string = getattr(settings, 'FACEBOOK_PROFILE_MODULE', None)
     if profile_string:
         app_label, model_label = profile_string.split('.')
         model = models.get_model(app_label, model_label)

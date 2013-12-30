@@ -73,7 +73,7 @@ class OpenGraphShareAdmin(admin.ModelAdmin):
     view_share.allow_tags = True
 
 
-if getattr(settings, 'AUTH_PROFILE_MODULE', None) == 'django_facebook.FacebookProfile':
+if getattr(settings, 'FACEBOOK_PROFILE_MODULE', None) == 'django_facebook.FacebookProfile':
     admin.site.register(models.FacebookProfile, FacebookProfileAdmin)
 
 admin.site.register(models.FacebookUser, FacebookUserAdmin)
