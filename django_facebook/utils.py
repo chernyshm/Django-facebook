@@ -1,3 +1,5 @@
+from django.contrib.auth.models import SiteProfileNotAvailable
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.decorators import available_attrs
 from functools import wraps
 try:
@@ -141,11 +143,34 @@ def update_user_attributes(user, profile, attributes_dict, save=False):
 
 
 def try_get_profile(user):
-    try:
-        p = user.get_profile()
-    except:
-        p = None
-    return p
+    """
+    Overwritten.
+    Returns FacebookUserProfile.
+    """
+    if not hasattr(user, '_profile_cache'):
+        from django.conf import settings
+        if not getattr(settings, 'FACEBOOK_PROFILE_MODULE', False):
+            raise SiteProfileNotAvailable(
+                'You need to set FACEBOOK_PROFILE_MODULE in your project '
+                'settings')
+        try:
+            app_label, model_name = settings.FACEBOOK_PROFILE_MODULE.split('.')
+        except ValueError:
+            raise SiteProfileNotAvailable(
+                'app_label and model_name should be separated by a dot in '
+                'the FACEBOOK_PROFILE_MODULE setting')
+        try:
+            model = models.get_model(app_label, model_name)
+            if model is None:
+                raise SiteProfileNotAvailable(
+                    'Unable to load the profile model, check '
+                    'FACEBOOK_PROFILE_MODULE in your project settings')
+            user._profile_cache = model._default_manager.using(
+                               user._state.db).get(user__id__exact=user.id)
+            user._profile_cache.user = user
+        except (ImportError, ImproperlyConfigured):
+            raise SiteProfileNotAvailable
+    return user._profile_cache
 
 
 def hash_key(key):
