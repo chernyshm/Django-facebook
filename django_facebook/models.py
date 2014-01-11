@@ -286,7 +286,7 @@ class FacebookModel(BaseFacebookModel):
         if user_or_profile_model == user_model:
             return self
         else:
-            return self.get_profile()
+            return try_get_profile(self)
 
     class Meta:
         abstract = True
@@ -523,7 +523,7 @@ class OpenGraphShare(BaseModel):
 
     def save(self, *args, **kwargs):
         if self.user and not self.facebook_user_id:
-            profile = self.user.get_profile()
+            profile = try_get_profile(self.user)
             self.facebook_user_id = get_user_attribute(
                 self.user, profile, 'facebook_id')
         return BaseModel.save(self, *args, **kwargs)
@@ -618,7 +618,7 @@ class OpenGraphShare(BaseModel):
         Update the share with the given data
         '''
         result = None
-        profile = self.user.get_profile()
+        profile = try_get_profile(self.user)
         graph = graph or profile.get_offline_graph()
 
         # update the share dict so a retry will do the right thing
@@ -636,7 +636,7 @@ class OpenGraphShare(BaseModel):
         if not self.share_id:
             raise ValueError('Can only delete shares which have an id')
         # see if the graph is enabled
-        profile = self.user.get_profile()
+        profile = try_get_profile(self.user)
         graph = graph or profile.get_offline_graph()
         response = None
         if graph:

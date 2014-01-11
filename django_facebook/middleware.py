@@ -10,7 +10,7 @@ from django_facebook import settings
 from django_facebook.canvas import generate_oauth_url
 from django_facebook.connect import connect_user
 from django_facebook.exceptions import MissingPermissionsError
-from django_facebook.utils import ScriptRedirect
+from django_facebook.utils import ScriptRedirect, try_get_profile
 
 
 class FacebookCanvasMiddleWare(object):
@@ -107,7 +107,7 @@ class FacebookCanvasMiddleWare(object):
 
     def check_django_facebook_user(self, request, facebook_id, access_token):
         try:
-            current_user = request.user.get_profile()
+            current_user = try_get_profile(request.user)
         except:
             current_facebook_id = None
         else:

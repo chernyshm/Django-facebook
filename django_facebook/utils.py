@@ -20,7 +20,6 @@ from django.utils.encoding import iri_to_uri
 from django.template.loader import render_to_string
 import gc
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -211,7 +210,7 @@ def clear_persistent_graph_cache(request):
     request.facebook = None
     request.session.delete('graph')
     if request.user.is_authenticated():
-        profile = request.user.get_profile()
+        profile = try_get_profile(request.user)
         profile.clear_access_token()
 
 
