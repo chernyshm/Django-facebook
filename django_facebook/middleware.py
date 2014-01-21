@@ -109,7 +109,12 @@ class FacebookCanvasMiddleWare(object):
         try:
             current_user = try_get_profile(request.user)
         except:
-            current_facebook_id = None
+            if request.user.is_client():
+                current_user = FacebookUserProfile.objects.create(user=request.user)
+                current_user.facebook_id = facebook_id
+                current_facebook_id = facebook_id
+            else:
+                current_facebook_id = None
         else:
             current_facebook_id = current_user.facebook_id
         if not current_facebook_id or current_facebook_id != facebook_id:
