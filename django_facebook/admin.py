@@ -75,7 +75,3 @@ class OpenGraphShareAdmin(admin.ModelAdmin):
 
 if getattr(settings, 'FACEBOOK_PROFILE_MODULE', None) == 'django_facebook.FacebookProfile':
     admin.site.register(models.FacebookProfile, FacebookProfileAdmin)
-
-admin.site.register(models.FacebookUser, FacebookUserAdmin)
-admin.site.register(models.FacebookLike, FacebookLikeAdmin)
-admin.site.register(models.OpenGraphShare, OpenGraphShareAdmin)

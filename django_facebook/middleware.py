@@ -11,6 +11,7 @@ from django_facebook.canvas import generate_oauth_url
 from django_facebook.connect import connect_user
 from django_facebook.exceptions import MissingPermissionsError
 from django_facebook.utils import ScriptRedirect, try_get_profile
+from bongoregistration.models import FacebookUserProfile
 
 
 class FacebookCanvasMiddleWare(object):
