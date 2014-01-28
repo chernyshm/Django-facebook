@@ -113,8 +113,8 @@ class FacebookCanvasMiddleWare(object):
         except:
             if request.user.is_authenticated():
                 if FacebookUserProfile.objects.filter(facebook_id=facebook_id).exists():
-                    messages.info('There is already an account on this site using that login')
-                    current_facebook_id
+                    messages.info(request,'There is already an account on this site using that login')
+                    return
                 else:
                     current_user = FacebookUserProfile.objects.create(user=request.user)
                     current_user.facebook_id = facebook_id
