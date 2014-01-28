@@ -26,10 +26,14 @@ class FacebookRegistrationFormUniqueEmail(forms.Form):
                              label=_("Email address"))
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
-        label=_("Password"))
+        label=_("Password"),
+        required=False
+        )
     password2 = forms.CharField(
         widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
-        label=_("Password (again)"))
+        label=_("Password (again)"),
+        required=False
+        )
 
     def clean_username(self):
         """

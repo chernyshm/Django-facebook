@@ -111,9 +111,13 @@ class FacebookCanvasMiddleWare(object):
             current_user = try_get_profile(request.user)
         except:
             if request.user.is_authenticated():
-                current_user = FacebookUserProfile.objects.create(user=request.user)
-                current_user.facebook_id = facebook_id
-                current_facebook_id = facebook_id
+                if FacebookUserProfile.objects.get(facebook_id=facebook_id, None):
+                    message.info('There is already an account on this site using that login')
+                    return
+                else:
+                    current_user = FacebookUserProfile.objects.create(user=request.user)
+                    current_user.facebook_id = facebook_id
+                    current_facebook_id = facebook_id
             else:
                 current_facebook_id = None
         else:
