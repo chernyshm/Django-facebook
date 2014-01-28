@@ -12,6 +12,7 @@ from django_facebook.connect import connect_user
 from django_facebook.exceptions import MissingPermissionsError
 from django_facebook.utils import ScriptRedirect, try_get_profile
 from bongoregistration.models import FacebookUserProfile
+from django.contrib import messages
 
 
 class FacebookCanvasMiddleWare(object):
@@ -112,7 +113,7 @@ class FacebookCanvasMiddleWare(object):
         except:
             if request.user.is_authenticated():
                 if FacebookUserProfile.objects.filter(facebook_id=facebook_id).exists():
-                    message.info('There is already an account on this site using that login')
+                    messages.info('There is already an account on this site using that login')
                     current_facebook_id
                 else:
                     current_user = FacebookUserProfile.objects.create(user=request.user)
