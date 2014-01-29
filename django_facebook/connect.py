@@ -67,16 +67,15 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
         if email and email_verified:
             kwargs = {'facebook_email': email}
         # social-auth support
-        try:
-            # trying to find social user with given email
-            social_user = User.objects.filter(email=email)
-            social_user = social_user[0] if social_user else None
-            if social_user and UserSocialAuth.objects.filter(user__id=social_user.id).exists():
-                try:
-                    current_user_profile = try_get_profile(social_user)
-                except:
-                    profile_model =get_profile_model()
-                    profile_model.objects.create(user=social_user)
+        # trying to find social user with given email
+        social_user = User.objects.filter(email=email)
+        social_user = social_user[0] if social_user else None
+        if social_user and UserSocialAuth.objects.filter(user__id=social_user.id).exists():
+            try:
+                current_user_profile = try_get_profile(social_user)
+            except:
+                profile_model =get_profile_model()
+                profile_model.objects.create(user=social_user)
         auth_user = authenticate(facebook_id=facebook_data['id'], **kwargs)
         if auth_user and not force_registration:
             action = CONNECT_ACTIONS.LOGIN
