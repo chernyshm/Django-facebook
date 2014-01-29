@@ -12,6 +12,7 @@ from django_facebook.utils import get_registration_backend, get_form_class, \
     get_profile_model, to_bool, get_user_model, get_instance_for,\
     get_user_attribute, try_get_profile, get_model_for_attribute,\
     get_instance_for_attribute, update_user_attributes
+from social_auth.models import UserSocialAuth
 from random import randint
 import logging
 import sys
@@ -65,6 +66,13 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
         kwargs = {}
         if email and email_verified:
             kwargs = {'facebook_email': email}
+        # social-auth support
+        if UserSocialAuth.objects.filter(user=request.user).exists():
+            try:
+                current_user_profile = try_get_profile(request.user)
+            except:
+                profile_model =get_profile_model()
+                profile_model.objects.create(user=request.user)
         auth_user = authenticate(facebook_id=facebook_data['id'], **kwargs)
         if auth_user and not force_registration:
             action = CONNECT_ACTIONS.LOGIN
