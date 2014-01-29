@@ -67,7 +67,7 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
         if email and email_verified:
             kwargs = {'facebook_email': email}
         # social-auth support
-        if UserSocialAuth.objects.filter(user=request.user).exists():
+        if UserSocialAuth.objects.filter(user__id=request.user.id).exists():
             try:
                 current_user_profile = try_get_profile(request.user)
             except:
