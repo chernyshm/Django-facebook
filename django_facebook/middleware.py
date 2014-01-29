@@ -86,7 +86,8 @@ class FacebookCanvasMiddleWare(object):
             return redirect_login_oauth
         # check if user authenticated and if it's the same
         if request.user.is_authenticated():
-            self.check_django_facebook_user(request, facebook_id, access_token)
+            if not self.check_django_facebook_user(request, facebook_id, access_token):
+                return
         request.facebook = graph
         if not request.user.is_authenticated():
             _action, _user = connect_user(request, access_token, graph)
@@ -114,7 +115,8 @@ class FacebookCanvasMiddleWare(object):
             if request.user.is_authenticated():
                 if FacebookUserProfile.objects.filter(facebook_id=facebook_id).exists():
                     messages.info(request,'There is already an account on this site using that login')
-                    return
+                    request.session['facebook_share_not_allowed'] = True
+                    return False
                 else:
                     current_user = FacebookUserProfile.objects.create(user=request.user)
                     current_user.facebook_id = facebook_id
