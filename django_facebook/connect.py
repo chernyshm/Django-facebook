@@ -13,6 +13,7 @@ from django_facebook.utils import get_registration_backend, get_form_class, \
     get_user_attribute, try_get_profile, get_model_for_attribute,\
     get_instance_for_attribute, update_user_attributes
 from social_auth.models import UserSocialAuth
+from django.contrib.auth.models import User
 from random import randint
 import logging
 import sys
