@@ -78,6 +78,23 @@ facebookClass.prototype = {
         );
     },
 
+    verifyFacebookShare: function(){
+        requiredPerms =this.getDefaultScope();
+        this.connectLoading(gettext('A Facebook pop-up has opened, please follow the instructions to sign in.'));
+        var scope = this;
+        var user_id = false
+        FB.login(function(response) {
+            var authResponse = response.authResponse;
+            if (authResponse) {
+                proccessFacebookShare(authResponse['userID']);
+            } else {
+                proccessFacebookShare()
+        },
+        {scope: requiredPerms.join(',')}
+        );
+        scope.connectLoading('',true,true);
+    },
+
     connectLoading: function (message, closeable, hideLoading) {
         /*
          * Show a loading lightbox to clarify what's happening to the user
