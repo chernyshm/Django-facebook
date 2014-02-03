@@ -89,6 +89,7 @@ facebookClass.prototype = {
                 proccessFacebookShare(authResponse['userID']);
             } else {
                 proccessFacebookShare()
+            }
         },
         {scope: requiredPerms.join(',')}
         );
