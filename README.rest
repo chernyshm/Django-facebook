@@ -100,6 +100,7 @@ Assuming you have vagrant installed, simply type the following in your shell:
     vagrant up; vagrant provision
 
     # Finally done?
+    
     vagrant ssh
     python manage.py runserver 0:8000
 
