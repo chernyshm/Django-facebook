@@ -27,6 +27,7 @@ def require_persistent_graph(request, *args, **kwargs):
     kwargs['raise_'] = True
     graph = get_persistent_graph(request, *args, **kwargs)
     if not graph:
+        logger.info("RPG01 no persistent graph")
         raise OpenFacebookException('please authenticate')
     return graph
 
@@ -39,6 +40,7 @@ def require_facebook_graph(request, *args, **kwargs):
     kwargs['raise_'] = True
     graph = get_facebook_graph(request, *args, **kwargs)
     if not graph:
+        logger.info("RFG01 no facebook graph")
         raise OpenFacebookException('please authenticate')
     return graph
 
@@ -54,6 +56,7 @@ def get_persistent_graph(request, *args, **kwargs):
     '''
     from open_facebook.api import OpenFacebook
     if not request:
+        logger.info("GPG01 no request")
         raise(ValidationError,
               'Request is required if you want to use persistent tokens')
 
@@ -62,27 +65,33 @@ def get_persistent_graph(request, *args, **kwargs):
     # graph
     require_refresh = False
     code = request.REQUEST.get('code')
+    logger.info("GPG02 code = " % code)
     if code:
         require_refresh = True
 
     local_graph = getattr(request, 'facebook', None)
+    logger.info("GPG03 local_graph" % local_graph)
     if local_graph:
         # gets the graph from the local memory if available
         graph = local_graph
 
     if not graph:
+        logger.info("GPG04 no graph")
         # search for the graph in the session
         cached_graph_dict = request.session.get('graph_dict')
         if cached_graph_dict:
+            logger.info("GPG05 graph in session")
             graph = OpenFacebook()
             graph.__setstate__(cached_graph_dict)
             graph._me = None
 
     if not graph or require_refresh:
         # gets the new graph, note this might do token conversions (slow)
+        logger.info("GPG06 getting graph")
         graph = get_facebook_graph(request, *args, **kwargs)
         # if it's valid replace the old cache
         if graph is not None and graph.access_token:
+            logger.info("GPG07 put graph into session")
             request.session['graph_dict'] = graph.__getstate__()
 
     # add the current user id and cache the graph at the request level
@@ -119,6 +128,7 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
     from django.core.cache import cache
     expires = None
     if hasattr(request, 'facebook') and request.facebook:
+        logger.info("GFaG01 graph in request")
         graph = request.facebook
         _add_current_user_id(graph, request.user)
         return graph
@@ -128,20 +138,21 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
     if request:
         signed_request_string = request.REQUEST.get('signed_data')
         if signed_request_string:
-            logger.info('Got signed data from facebook')
+            logger.info('GFaG02 Got signed data from facebook')
             signed_data = parse_signed_request(signed_request_string)
         if signed_data:
-            logger.info('We were able to parse the signed data')
+            logger.info('GFaG03 We were able to parse the signed data')
 
     # the easy case, we have an access token in the signed data
     if signed_data and 'oauth_token' in signed_data:
         access_token = signed_data['oauth_token']
+        logger.info('GFaG04 access token in signed data %s' % access_token)
 
     if not access_token:
         # easy case, code is in the get
         code = request.REQUEST.get('code')
         if code:
-            logger.info('Got code from the request data')
+            logger.info('GFaG05 Got code from the request data')
 
         if not code:
             # signed request or cookie leading, base 64 decoding needed
@@ -151,21 +162,21 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
             if cookie_data:
                 signed_request_string = cookie_data
                 if signed_request_string:
-                    logger.info('Got signed data from cookie')
+                    logger.info('GFaG06 Got signed data from cookie')
                 signed_data = parse_signed_request(signed_request_string)
                 if signed_data:
-                    logger.info('Parsed the cookie data')
+                    logger.info('GFaG07 Parsed the cookie data')
                 # the javascript api assumes a redirect uri of ''
                 redirect_uri = ''
 
             if signed_data:
                 # parsed data can fail because of signing issues
                 if 'oauth_token' in signed_data:
-                    logger.info('Got access_token from parsed data')
+                    logger.info('GFaG08 Got access_token from parsed data')
                     # we already have an active access token in the data
                     access_token = signed_data['oauth_token']
                 else:
-                    logger.info('Got code from parsed data')
+                    logger.info('GFaG09 Got code from parsed data')
                     # no access token, need to use this code to get one
                     code = signed_data.get('code', None)
 
@@ -189,7 +200,7 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
 
                     try:
                         logger.info(
-                            'trying to convert the code with redirect uri: %s',
+                            'GFaG10 trying to convert the code with redirect uri: %s',
                             redirect_uri)
                         # This is realy slow, that's why it's cached
                         token_response = FacebookAuthorization.convert_code(
@@ -203,7 +214,7 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
                         # this sometimes fails, but it shouldnt raise because
                         # it happens when users remove your
                         # permissions and then try to reauthenticate
-                        logger.warn('Error when trying to convert code %s',
+                        logger.warn('GFaG11 Error when trying to convert code %s',
                                     unicode(e))
                         if raise_:
                             raise
@@ -211,17 +222,20 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
                             return None
             elif request.user.is_authenticated():
                 # support for offline access tokens stored in the users profile
+                logger.info('GFaG12 get access_token of authorised user with id = ' % request.user.id)
                 profile = try_get_profile(request.user)
                 access_token = get_user_attribute(
                     request.user, profile, 'access_token')
                 if not access_token:
                     if raise_:
                         message = 'Couldnt find an access token in the request or the users profile'
+                        logger.info('GFaG13 Couldnt find an access token in the request or the users profile')
                         raise open_facebook_exceptions.OAuthException(message)
                     else:
                         return None
             else:
                 if raise_:
+                    logger.info('GFaG14 Couldnt find an access token in the request or cookies')
                     message = 'Couldnt find an access token in the request or cookies'
                     raise open_facebook_exceptions.OAuthException(message)
                 else:

@@ -34,11 +34,13 @@ def connect(request, graph):
     # validation to ensure the context processor is enabled
     if not context.get('FACEBOOK_APP_ID'):
         message = 'Please specify a Facebook app id and ensure the context processor is enabled'
+        logger.info('CO01 Please specify a Facebook app id and ensure the context processor is enabled')
         raise ValueError(message)
 
     try:
         response = _connect(request, graph)
     except open_facebook_exceptions.FacebookUnreachable, e:
+        logger.info('CO02 Probably slow FB')
         # often triggered when Facebook is slow
         warning_format = u'%s, often caused by Facebook slowdown, error %s'
         warn_message = warning_format % (type(e), e.message)
@@ -71,6 +73,7 @@ def _connect(request, graph):
         authenticated = converter.is_authenticated()
         # Defensive programming :)
         if not authenticated:
+            logger.info('not authenticated')
             raise ValueError('didnt expect this flow')
 
         logger.info('Facebook is authenticated')
@@ -84,6 +87,7 @@ def _connect(request, graph):
             # show them a registration form to add additional data
             warning_format = u'Incomplete profile data encountered with error %s'
             warn_message = warning_format % unicode(e)
+            logger.info(warn_message)
             send_warning(warn_message, e=e,
                          facebook_data=facebook_data)
 
@@ -94,6 +98,7 @@ def _connect(request, graph):
                 context_instance=context,
             )
         except facebook_exceptions.AlreadyConnectedError, e:
+            logger.info('Already connected error')
             user_ids = [u.get_user_id() for u in e.users]
             ids_string = ','.join(map(str, user_ids))
             additional_params = dict(already_connected=ids_string)
@@ -105,6 +110,7 @@ def _connect(request, graph):
             pass
         elif action is CONNECT_ACTIONS.CONNECT:
             # connect means an existing account was attached to facebook
+            logger.info("You have connected your account to %s's facebook profile" % facebook_data['name'])
             messages.info(request, _("You have connected your account "
                                      "to %s's facebook profile") % facebook_data['name'])
         elif action is CONNECT_ACTIONS.REGISTER:
@@ -112,6 +118,7 @@ def _connect(request, graph):
             response.set_cookie('fresh_registration', user.id)
     else:
         # the user denied the request
+        logger.info("User denied request")
         additional_params = dict(fb_error_or_cancel='1')
         response = backend.post_error(request, additional_params)
 
@@ -124,6 +131,7 @@ def disconnect(request):
     And redirects to the specified next page
     '''
     if request.method == 'POST':
+        logger.info("You have disconnected your Facebook profile.")
         messages.info(
             request, _("You have disconnected your Facebook profile."))
         profile = try_get_profile(request.user)

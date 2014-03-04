@@ -43,6 +43,7 @@ class FacebookRequired(object):
         b.) We tried getting permissions and failed, abort...
         c.) We are about to ask for permissions
         '''
+        logger.info("AU01 Authenticate user...")
         redirect_uri = self.get_redirect_uri(request)
         oauth_url = get_oauth_url(
             self.scope_list, redirect_uri, extra_params=self.extra_params)
@@ -53,14 +54,17 @@ class FacebookRequired(object):
         permissions_granted = has_permissions(graph, self.scope_list)
 
         if permissions_granted:
+            logger.info("AU02 permissions granted")
             response = self.execute_view(
                 fn, request, graph=graph, *args, **kwargs)
         elif request.REQUEST.get('attempt') == '1':
+            logger.info("AU03 Authentication failed")
             # Doing a redirect could end up causing infinite redirects
             # If Facebook is somehow not giving permissions
             # Time to show an error page
             response = self.authentication_failed(fn, request, *args, **kwargs)
         else:
+            logger.info("AU04 Ask permissions")
             response = self.oauth_redirect(oauth_url, redirect_uri)
 
         return response
@@ -70,13 +74,17 @@ class FacebookRequired(object):
         return the redirect uri to use for oauth authorization
         this needs to be the same for requesting and accepting the token
         '''
+        logger.info("GRU01 get redirect url...")
         if self.canvas:
             redirect_uri = fb_settings.FACEBOOK_CANVAS_PAGE
+            logger.info("GRU02 redirect url %s" % redirect_uri)
         else:
             redirect_uri = request.build_absolute_uri()
+            logger.info("GRU03 redirect url %s" % redirect_uri)
 
         # set attempt=1 to prevent endless redirect loops
         if 'attempt=1' not in redirect_uri:
+            logger.info("GRU04 prevent endless redirect")
             if '?' not in redirect_uri:
                 redirect_uri += '?attempt=1'
             else:
@@ -140,6 +148,7 @@ class FacebookRequired(object):
             # this might be another error type error, raise it
             # the only way I know to check this is the message :(
             if 'graph' not in e.message:
+                logger.info("EV01 no graph")
                 raise
             graph = kwargs.pop('graph', None)
             result = view_func(*args, **kwargs)
@@ -163,6 +172,7 @@ class FacebookRequiredLazy(FacebookRequired):
     """
 
     def authenticate(self, fn, request, *args, **kwargs):
+        logger.info("AUL01 lazy authentication...")
         redirect_uri = self.get_redirect_uri(request)
         oauth_url = get_oauth_url(
             self.scope_list, redirect_uri, extra_params=self.extra_params)
@@ -178,9 +188,12 @@ class FacebookRequiredLazy(FacebookRequired):
             # using this
             response = self.execute_view(
                 fn, request, graph=graph, *args, **kwargs)
+            logger.info("AUL02 probably got graph")
         except open_facebook_exceptions.OpenFacebookException, e:
+            logger.info("AUL03 error in getting graph")
             permission_granted = has_permissions(graph, self.scope_list)
             if permission_granted:
+                logger.info("AUL04 no permissions")
                 # an error if we already have permissions
                 # shouldn't have been caught
                 # raise to prevent bugs with error mapping to cause issues
@@ -189,9 +202,11 @@ class FacebookRequiredLazy(FacebookRequired):
                 # Doing a redirect could end up causing infinite redirects
                 # If Facebook is somehow not giving permissions
                 # Time to show an error page
+                logger.info("AUL05 authentication failed")
                 response = self.authentication_failed(
                     fn, request, *args, **kwargs)
             else:
+                logger.info("AUL06 error %s" % e)
                 response = self.oauth_redirect(oauth_url, redirect_uri, e)
         return response
 
