@@ -65,12 +65,12 @@ def get_persistent_graph(request, *args, **kwargs):
     # graph
     require_refresh = False
     code = request.REQUEST.get('code')
-    logger.info("GPG02 code = " % code)
+    logger.info("GPG02 code = %s" % code)
     if code:
         require_refresh = True
 
     local_graph = getattr(request, 'facebook', None)
-    logger.info("GPG03 local_graph" % local_graph)
+    logger.info("GPG03 local_graph %s" % local_graph)
     if local_graph:
         # gets the graph from the local memory if available
         graph = local_graph
@@ -200,8 +200,7 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
 
                     try:
                         logger.info(
-                            'GFaG10 trying to convert the code with redirect uri: %s',
-                            redirect_uri)
+                            'GFaG10 trying to convert the code with redirect uri: %s' % redirect_uri)
                         # This is realy slow, that's why it's cached
                         token_response = FacebookAuthorization.convert_code(
                             code, redirect_uri=redirect_uri)
@@ -214,15 +213,14 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
                         # this sometimes fails, but it shouldnt raise because
                         # it happens when users remove your
                         # permissions and then try to reauthenticate
-                        logger.warn('GFaG11 Error when trying to convert code %s',
-                                    unicode(e))
+                        logger.warn('GFaG11 Error when trying to convert code %s' % unicode(e))
                         if raise_:
                             raise
                         else:
                             return None
             elif request.user.is_authenticated():
                 # support for offline access tokens stored in the users profile
-                logger.info('GFaG12 get access_token of authorised user with id = ' % request.user.id)
+                logger.info('GFaG12 get access_token of authorised user with id = %s' % request.user.id)
                 profile = try_get_profile(request.user)
                 access_token = get_user_attribute(
                     request.user, profile, 'access_token')
