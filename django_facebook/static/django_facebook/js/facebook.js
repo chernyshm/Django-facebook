@@ -60,18 +60,12 @@ facebookClass.prototype = {
             return formElement.submit();
         }
         requiredPerms = requiredPerms || this.getDefaultScope();
-        this.connectLoading(gettext('A Facebook pop-up has opened, please follow the instructions to sign in.'));
         var scope = this;
         FB.login(function(response) {
             var authResponse = response.authResponse;
             if (authResponse) {
-                //showloading
-                scope.connectLoading(gettext('Now loading your profile...'));
                 //submit the form
                 formElement.submit();
-            } else {
-                var errorMessage = gettext('Sorry, we couldn\'t log you in. Please try again.');
-                scope.connectLoading(errorMessage, true, true);
             }
         },
         {scope: requiredPerms.join(',')}
@@ -80,7 +74,6 @@ facebookClass.prototype = {
 
     verifyFacebookShare: function(){
         requiredPerms =this.getDefaultScope();
-        this.connectLoading(gettext('A Facebook pop-up has opened, please follow the instructions to sign in.'));
         var scope = this;
         var user_id = false
         FB.login(function(response) {
@@ -93,42 +86,7 @@ facebookClass.prototype = {
         },
         {scope: requiredPerms.join(',')}
         );
-        scope.connectLoading('',true,true);
     },
-
-    connectLoading: function (message, closeable, hideLoading) {
-        /*
-         * Show a loading lightbox to clarify what's happening to the user
-         */
-        var facebookMessage = document.getElementById('facebook_message');
-        var facebookContainer = document.getElementById('facebook_container');
-        if (!facebookMessage) {
-            var container = document.createElement('div');
-            container.id = 'facebook_container';
-            var html = '<div id="facebook_shade"></div>\
-                <div id="facebook_wrapper">\
-                    <div id="facebook_lightbox">\
-                        <div id="facebook_message" />{{ message }}</div>\
-                        <img id="facebook_loading" src="' + staticUrl + 'django_facebook/images/facebook_loading.gif" alt="..."/>\
-                        <div id="facebook_close" style="display: none" onclick="document.getElementById(\'facebook_container\').style.display=\'none\';"></div>\
-                    </div>\
-                </div>';
-            html = html.replace('{{ message }}', message);
-            container.innerHTML = html;
-            document.body.appendChild(container);
-            facebookMessage = document.getElementById('facebook_message');
-            facebookContainer = document.getElementById('facebook_container');
-        }
-        facebookMessage.innerHTML = message;
-        facebookContainer.style.display = message ? 'block' : 'none';
-        document.getElementById('facebook_close').style.display = closeable ? 'block' : 'none';
-        document.getElementById('facebook_loading').style.display = hideLoading ? 'none' : 'inline';
-
-        //set the correct top
-        var requiredTop = this.getViewportScrollY();
-        document.getElementById('facebook_lightbox').style.top = requiredTop + 'px';
-    },
-
 
     load: function () {
         var facebookScript = document.getElementById('facebook_js');
