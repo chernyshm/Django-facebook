@@ -117,8 +117,6 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
     _update_access_token(user, graph)
 
     logger.info('connect finished with action %s', action)
-    # add marker to session (currently used for displaying fb avatar for user logged in with fb)
-    request.session['logged_in_with_facebook'] = 'true'
 
     return action, user
 
