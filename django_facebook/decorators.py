@@ -22,13 +22,14 @@ class FacebookRequired(object):
     Querying the permissions would slow down things
     """
 
-    def __init__(self, fn, scope=None, canvas=False, page_tab=False, extra_params=None):
+    def __init__(self, fn, scope=None, canvas=False, page_tab=False, mobile=False, extra_params=None):
         self.fn = fn
         scope = fb_settings.FACEBOOK_DEFAULT_SCOPE if scope is None else scope
         self.scope = scope
         self.scope_list = parse_scope(scope)
         self.canvas = canvas
         self.page_tab = page_tab
+        self.mobile = mobile
         self.extra_params = extra_params
         # canvas pages always need to be csrf excempt
         csrf_exempt = canvas or page_tab
@@ -43,6 +44,8 @@ class FacebookRequired(object):
         b.) We tried getting permissions and failed, abort...
         c.) We are about to ask for permissions
         '''
+        if hasattr(request, 'mobile') and request.mobile:
+            self.mobile = True
         logger.info("AU01 Authenticate user...")
         redirect_uri = self.get_redirect_uri(request)
         oauth_url = get_oauth_url(
@@ -75,7 +78,10 @@ class FacebookRequired(object):
         this needs to be the same for requesting and accepting the token
         '''
         logger.info("GRU01 get redirect url...")
-        if self.canvas:
+        if self.mobile:
+            redirect_uri = fb_settings.FACEBOOK_MOBILE_PAGE
+            logger.info("GRU05 redirect url %s" % redirect_uri)
+        elif self.canvas:
             redirect_uri = fb_settings.FACEBOOK_CANVAS_PAGE
             logger.info("GRU02 redirect url %s" % redirect_uri)
         else:

@@ -52,7 +52,7 @@ class FacebookCanvasMiddleWare(object):
 
         # This call cannot be global'ized or Django will return an empty response
         # after the first one
-        redirect_login_oauth = ScriptRedirect(redirect_to=generate_oauth_url(),
+        redirect_login_oauth = ScriptRedirect(redirect_to=generate_oauth_url(mobile=request.mobile),
                                               show_body=False)
         # check referer to see if this is the first access
         # or it's part of navigation in app
@@ -64,10 +64,9 @@ class FacebookCanvasMiddleWare(object):
             is_facebook = urlparsed.netloc.endswith('facebook.com')
             # facebook redirect
             if is_facebook and urlparsed.path.endswith('/l.php'):
-                logger.info("PR03 is_facebook = True")
+                logger.info("PR03 is_facebook = True, but ends with /l.php")
                 return
             if not is_facebook:
-                logger.info("PR04 is_facebook = False")
                 return
             # when there is an error, we attempt to allow user to
             # reauthenticate
@@ -75,7 +74,6 @@ class FacebookCanvasMiddleWare(object):
                 logger.info("PR05 errors in request.GET")
                 return redirect_login_oauth
         else:
-            logger.info("PR06 no referrer")
             return
 
         # get signed_request

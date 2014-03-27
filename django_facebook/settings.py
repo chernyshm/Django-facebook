@@ -32,6 +32,9 @@ FACEBOOK_REGISTRATION_BACKEND = getattr(
 FACEBOOK_CANVAS_PAGE = getattr(settings, 'FACEBOOK_CANVAS_PAGE',
                                'http://apps.facebook.com/django_facebook_test/')
 
+FACEBOOK_MOBILE_PAGE = getattr(settings, 'FACEBOOK_MOBILE_PAGE',
+                               'http://m.facebook.com/apps/django_facebook_test/')
+
 # Disable this setting if you don't want to store a local image
 FACEBOOK_STORE_LOCAL_IMAGE = getattr(
     settings, 'FACEBOOK_STORE_LOCAL_IMAGE', True)
