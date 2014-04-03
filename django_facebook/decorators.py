@@ -78,12 +78,13 @@ class FacebookRequired(object):
         this needs to be the same for requesting and accepting the token
         '''
         logger.info("GRU01 get redirect url...")
-        if self.mobile:
-            redirect_uri = fb_settings.FACEBOOK_MOBILE_PAGE
-            logger.info("GRU05 redirect url %s" % redirect_uri)
-        elif self.canvas:
-            redirect_uri = fb_settings.FACEBOOK_CANVAS_PAGE
-            logger.info("GRU02 redirect url %s" % redirect_uri)
+        if self.canvas:
+            if self.mobile:
+                redirect_uri = fb_settings.FACEBOOK_MOBILE_PAGE
+                logger.info("GRU05 redirect url %s" % redirect_uri)
+            else:
+                redirect_uri = fb_settings.FACEBOOK_CANVAS_PAGE
+                logger.info("GRU02 redirect url %s" % redirect_uri)
         else:
             redirect_uri = request.build_absolute_uri()
             logger.info("GRU03 redirect url %s" % redirect_uri)
