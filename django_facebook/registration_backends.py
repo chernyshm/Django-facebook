@@ -70,6 +70,8 @@ class NooptRegistrationBackend(object):
             response = base_next_redirect(next_key=['connect_next', 'next'])
         elif action is CONNECT_ACTIONS.REGISTER:
             response = base_next_redirect(next_key=['register_next', 'next'])
+        if 'campaign_id' in request.GET:
+            request.session['share_campaign_id'] = request.GET['campaign_id']
 
         return response
 
