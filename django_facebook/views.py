@@ -105,6 +105,11 @@ def _connect(request, graph):
             ids_string = ','.join(map(str, user_ids))
             additional_params = dict(already_connected=ids_string)
             return backend.post_error(request, additional_params)
+        if 'campaign_id' in request.GET:
+            try:
+                user.userprofile.extra_data['last_campaign_id'] = request.GET['campaign_id']
+            except:
+                pass
 
         response = backend.post_connect(request, user, action)
 
