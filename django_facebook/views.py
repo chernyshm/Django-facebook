@@ -37,6 +37,8 @@ def connect(request, graph):
         logger.info('CO01 Please specify a Facebook app id and ensure the context processor is enabled')
         raise ValueError(message)
 
+    if 'campaign_id' in request.GET:
+        request.session['share_campaign_id'] = request.GET['campaign_id']
     try:
         response = _connect(request, graph)
     except open_facebook_exceptions.FacebookUnreachable, e:
