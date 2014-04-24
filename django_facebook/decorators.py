@@ -6,6 +6,7 @@ from django_facebook.utils import get_oauth_url, parse_scope, response_redirect,
     has_permissions, simplify_class_decorator
 from open_facebook import exceptions as open_facebook_exceptions
 import logging
+import urlparse
 
 
 logger = logging.getLogger(__name__)
@@ -80,15 +81,19 @@ class FacebookRequired(object):
         logger.info("GRU01 get redirect url...")
         if self.canvas:
             if self.mobile:
-                redirect_uri = fb_settings.FACEBOOK_MOBILE_PAGE
-                logger.info("GRU05 redirect url %s" % redirect_uri)
+                redirect_host = fb_settings.FACEBOOK_MOBILE_PAGE
+                logger.info("GRU05 redirect host %s" % redirect_host)
             else:
-                redirect_uri = fb_settings.FACEBOOK_CANVAS_PAGE
-                logger.info("GRU02 redirect url %s" % redirect_uri)
+                redirect_host = fb_settings.FACEBOOK_CANVAS_PAGE
+                logger.info("GRU02 redirect host %s" % redirect_host)
+            # redirect to uri where you came from
+            # (prevents showing last campaign when access_token is expired #1078)
+            parsed_url = urlparse.urlparse(request.build_absolute_uri())
+            redirect_uri = redirect_host + parsed_url.path[1:] + u'?' + parsed_url.query
+            logger.info("GRU06 redirect uri %s" % redirect_uri)
         else:
             redirect_uri = request.build_absolute_uri()
             logger.info("GRU03 redirect url %s" % redirect_uri)
-
         # set attempt=1 to prevent endless redirect loops
         if 'attempt=1' not in redirect_uri:
             logger.info("GRU04 prevent endless redirect")
