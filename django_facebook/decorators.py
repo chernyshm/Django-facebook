@@ -45,8 +45,7 @@ class FacebookRequired(object):
         b.) We tried getting permissions and failed, abort...
         c.) We are about to ask for permissions
         '''
-        if hasattr(request, 'mobile') and request.mobile:
-            self.mobile = True
+        self.mobile = request.mobile
         logger.info("AU01 Authenticate user...")
         redirect_uri = self.get_redirect_uri(request)
         oauth_url = get_oauth_url(
@@ -80,7 +79,7 @@ class FacebookRequired(object):
         '''
         logger.info("GRU01 get redirect url...")
         if self.canvas:
-            if self.mobile:
+            if request.mobile:
                 redirect_host = fb_settings.FACEBOOK_MOBILE_PAGE
                 logger.info("GRU05 redirect host %s" % redirect_host)
             else:

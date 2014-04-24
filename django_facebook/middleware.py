@@ -66,6 +66,9 @@ class FacebookCanvasMiddleWare(object):
             if is_facebook and urlparsed.path.endswith('/l.php'):
                 logger.info("PR03 is_facebook = True, but ends with /l.php")
                 return
+            # after facebook share via feeder
+            if 'dialog/feed' in urlparsed.path:
+                return
             if not is_facebook:
                 return
             # when there is an error, we attempt to allow user to
