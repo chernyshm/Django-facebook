@@ -146,21 +146,32 @@ def try_get_profile(user):
     Overwritten.
     Returns FacebookUserProfile.
     """
-    if not hasattr(user, '_profile_cache'):
+    from bongoregistration.models import FacebookUserProfile
+    logger.debug("TGP01 Try get profile")
+    if not hasattr(user, '_profile_cache') or not isinstance(user, FacebookUserProfile):
+        logger.debug("TGP02 No _profile_cache")
         from django.conf import settings
         if not getattr(settings, 'FACEBOOK_PROFILE_MODULE', False):
+            logger.debug("TGP03 No facebook profile module insettings")
             raise SiteProfileNotAvailable(
                 'You need to set FACEBOOK_PROFILE_MODULE in your project '
                 'settings')
         try:
+            logger.debug("TGP03 Get model name and app name")
             app_label, model_name = settings.FACEBOOK_PROFILE_MODULE.split('.')
+            logger.debug("TGP04 App label: %s" % app_label)
+            logger.debug("TGP05 Model name: %s" % model_name)
         except ValueError:
+            logger.debug("TGP06 Value error exception")
             raise SiteProfileNotAvailable(
                 'app_label and model_name should be separated by a dot in '
                 'the FACEBOOK_PROFILE_MODULE setting')
         try:
+            logger.debug("TGP07 Try getting model")
             model = models.get_model(app_label, model_name)
+            logger.debug("TGP08 Model is %s" % model)
             if model is None:
+                logger.debug("TGP09 Model is None")
                 raise SiteProfileNotAvailable(
                     'Unable to load the profile model, check '
                     'FACEBOOK_PROFILE_MODULE in your project settings')
@@ -168,7 +179,9 @@ def try_get_profile(user):
                                user._state.db).get(user__id__exact=user.id)
             user._profile_cache.user = user
         except (ImportError, ImproperlyConfigured):
+            logger.debug("TGP10 Import error in cache get ")
             raise SiteProfileNotAvailable
+    logger.debug("TGP11 Got profile %s" % user._profile_cache)
     return user._profile_cache
 
 
