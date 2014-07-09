@@ -37,12 +37,6 @@ facebookClass.prototype = {
         function javascriptLoaded() {
             scope.javascriptLoaded.call(scope);
         }
-
-        var iphone = navigator.userAgent.match(/iPhone/i)
-        var ipod = navigator.userAgent.match(/iPod/i);
-        var ipad = navigator.userAgent.match(/iPad/i);
-        var ithing = iphone || ipod || ipad;
-        this.ithing = ithing;
     },
 
     getDefaultScope : function() {
@@ -56,9 +50,6 @@ facebookClass.prototype = {
     },
 
     connect: function (formElement, requiredPerms) {
-        if (this.ithing) {
-            return formElement.submit();
-        }
         requiredPerms = requiredPerms || this.getDefaultScope();
         var scope = this;
         FB.login(function(response) {
