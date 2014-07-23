@@ -130,6 +130,8 @@ def get_facebook_graph(request=None, access_token=None, redirect_uri=None, raise
     if hasattr(request, 'facebook') and request.facebook:
         logger.info("GFaG01 graph in request")
         graph = request.facebook
+        logger.info("GFaG15 graph: %s" % graph)
+        logger.info("GFaG16 user: %s" % request.user)
         _add_current_user_id(graph, request.user)
         return graph
 
@@ -252,12 +254,16 @@ def _add_current_user_id(graph, user):
     set the current user id, convenient if you want to make sure you
     fb session and user belong together
     '''
+    logger.info("ACUI01 add user id")
     if graph:
+        logger.info("ACUI02 graph")
         graph.current_user_id = None
 
         if user.is_authenticated():
+            logger.info("ACUI03 user is authenticated, try get profile")
             profile = try_get_profile(user)
             facebook_id = get_user_attribute(user, profile, 'facebook_id')
+            logger.info("ACUI04 facebook_id %s" % facebook_id)
             if facebook_id:
                 graph.current_user_id = facebook_id
 

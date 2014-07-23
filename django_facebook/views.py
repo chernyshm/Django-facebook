@@ -68,17 +68,18 @@ def _connect(request, graph):
     context = RequestContext(request)
     connect_facebook = to_bool(request.REQUEST.get('connect_facebook'))
 
-    logger.info('trying to connect using Facebook')
+    logger.info('C01: trying to connect using Facebook')
     if graph:
-        logger.info('found a graph object')
+        logger.info('C02: found a graph object')
         converter = get_instance_for('user_conversion', graph)
+        logger.info('C03: converter ' % converter)
         authenticated = converter.is_authenticated()
         # Defensive programming :)
         if not authenticated:
-            logger.info('not authenticated')
+            logger.info('C04: not authenticated')
             raise ValueError('didnt expect this flow')
 
-        logger.info('Facebook is authenticated')
+        logger.info('C05: Facebook is authenticated')
         facebook_data = converter.facebook_profile_data()
         # either, login register or connect the user
         try:

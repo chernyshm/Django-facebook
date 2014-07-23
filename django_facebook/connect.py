@@ -43,6 +43,9 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
     - login
     - register
     '''
+    logger.info('CU01: Start data access_token %s' % access_token)
+    logger.info('CU02: Start data facebook_graph %s' % facebook_graph)
+    logger.info('CU03: Connect facebook %s' % connect_facebook)
     user = None
     graph = facebook_graph or get_facebook_graph(request, access_token)
 
@@ -52,63 +55,86 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
     facebook_data = converter.facebook_profile_data()
     force_registration = request.REQUEST.get('force_registration') or\
         request.REQUEST.get('force_registration_hard')
+    logger.info('CU04: Force registration %s' % force_registration)
 
-    logger.debug('force registration is set to %s', force_registration)
     if connect_facebook and request.user.is_authenticated() and not force_registration:
+        logger.info('CU05: User is authenticated %s' % request.user.is_authenticated())
         # we should only allow connect if users indicate they really want to connect
         # only when the request.CONNECT_FACEBOOK = 1
         # if this isn't present we just do a login
         action = CONNECT_ACTIONS.CONNECT
+        logger.info('CU06: Action %s' % action)
         # default behaviour is not to overwrite old data
         user = _connect_user(request, converter, overwrite=True)
     else:
+        logger.info('CU07: Bad day')
         email = facebook_data.get('email', False)
+        logger.info('CU08: Email %s' % email)
         email_verified = facebook_data.get('verified', False)
         kwargs = {}
         if email and email_verified:
+            logger.info('CU09: Facebook email added to kwargs')
             kwargs = {'facebook_email': email}
         # social-auth support
         # trying to find social user with given email
+        logger.info('CU10: Social auth support')
         social_user = User.objects.filter(email=email)
+        logger.info('CU11: Social users found %s' % social_user)
         social_user = social_user[0] if social_user else None
+        logger.info('CU12: Social user %s' % social_user)
         if social_user and UserSocialAuth.objects.filter(user__id=social_user.id).exists():
+            logger.info('CU13: Social user exists')
             try:
                 current_user_profile = try_get_profile(social_user)
+                logger.info('CU14: Got profile for social user %s' % current_user_profile)
             except:
-                profile_model =get_profile_model()
+                logger.info('CU15: No profile')
+                profile_model = get_profile_model()
+                logger.info('CU16: Profile model %s' % profile_model)
                 profile_model.objects.create(user=social_user)
+                logger.info('CU17: Profile object created')
+        logger.info('CU18: Aunthenticate %s ' % facebook_data['id'])
         auth_user = authenticate(facebook_id=facebook_data['id'], **kwargs)
+        logger.info('CU19: Aunthenticated user %s ' % auth_user)
         if auth_user and not force_registration:
             action = CONNECT_ACTIONS.LOGIN
-
+            logger.info('CU20: Action %s' % action)
             # Has the user registered without Facebook, using the verified FB
             # email address?
             # It is after all quite common to use email addresses for usernames
             update = getattr(auth_user, 'fb_update_required', False)
+            logger.info('CU21: Update %s' % update)
             profile = try_get_profile(auth_user)
+            logger.info('CU22: Got profile %s' % profile)
             current_facebook_id = get_user_attribute(
                 auth_user, profile, 'facebook_id')
+            logger.info('CU23: Current facebook_id %s' % current_facebook_id)
             if not current_facebook_id:
                 update = True
             # login the user
             user = _login_user(request, converter, auth_user, update=update)
         else:
             action = CONNECT_ACTIONS.REGISTER
+            logger.info('CU24: Action %s' % action)
             # when force registration is active we should remove the old
             # profile
             try:
                 user = _register_user(request, converter,
                                       remove_old_connections=force_registration)
+                logger.info('CU25: User registered %s' % user)
             except facebook_exceptions.AlreadyRegistered, e:
                 # in Multithreaded environments it's possible someone beats us to
                 # the punch, in that case just login
                 logger.info(
-                    'parallel register encountered, slower thread is doing a login')
+                    'CU26: parallel register encountered, slower thread is doing a login')
                 auth_user = authenticate(
                     facebook_id=facebook_data['id'], **kwargs)
+                logger.info('CU27: Auth user %s' % auth_user)
                 if not auth_user:
+                    logger.info('CU28: No auth user')
                     # We don't have a valid user so raise
                     raise e
+                logger.info('CU29: Login user')
                 action = CONNECT_ACTIONS.LOGIN
                 user = _login_user(request, converter, auth_user, update=False)
 
@@ -116,7 +142,7 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
 
     _update_access_token(user, graph)
 
-    logger.info('connect finished with action %s', action)
+    logger.info('CU29: connect finished with action %s', action)
 
     return action, user
 
@@ -223,6 +249,7 @@ def _register_user(request, facebook, profile_callback=None,
     facebook_data = facebook.facebook_registration_data()
 
     data = request.POST.copy()
+    logger.info('data for registration form %s', data)
     for k, v in facebook_data.items():
         if not data.get(k):
             data[k] = v
@@ -269,7 +296,7 @@ def _register_user(request, facebook, profile_callback=None,
     # attribute for some reason
     new_user.backend = 'django_facebook.auth_backends.FacebookBackend'
     auth.login(request, new_user)
-
+    logger.info('Return new user %s' % new_user)
     return new_user
 
 
