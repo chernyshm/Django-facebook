@@ -72,7 +72,6 @@ def _connect(request, graph):
     if graph:
         logger.info('C02: found a graph object')
         converter = get_instance_for('user_conversion', graph)
-        logger.info('C03: converter ' % converter)
         authenticated = converter.is_authenticated()
         # Defensive programming :)
         if not authenticated:
