@@ -19,6 +19,7 @@ import logging
 import sys
 import urllib2
 
+from bongoregistration.models import FacebookUserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,6 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
                 logger.info('CU16: Profile model %s' % profile_model)
                 profile_model.objects.create(user=social_user)
                 logger.info('CU17: Profile object created')
-        logger.info('CU18: Aunthenticate %s ' % facebook_data['id'])
         auth_user = authenticate(facebook_id=facebook_data['id'], **kwargs)
         logger.info('CU19: Aunthenticated user %s ' % auth_user)
         if auth_user and not force_registration:
@@ -142,7 +142,7 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
 
     _update_access_token(user, graph)
 
-    logger.info('CU29: connect finished with action %s', action)
+    logger.info('CU30: connect finished with action %s', action)
 
     return action, user
 
@@ -263,31 +263,49 @@ def _register_user(request, facebook, profile_callback=None,
     form = form_class(data=data, files=request.FILES,
                       initial={'ip': request.META['REMOTE_ADDR']})
 
-    if not form.is_valid():
-        # show errors in sentry
-        form_errors = form.errors
-        error = facebook_exceptions.IncompleteProfileError(
-            'Facebook signup incomplete')
-        error.form = form
-        raise error
+    form.is_valid()
+    # BONGOMAGIC-1005 We need to attach facebook user profile to the already registered users
+    # We don't want to create new one and show form error
+    email = form.cleaned_data['email']
+    existing_users = User.objects.filter(email=email)
+    logger.info("RU01 found users with email %s : %s " % (email, existing_users))
+    existing_user = None
+    new_user = None
+    for _existing_user in existing_users:
+        if not _existing_user.is_client():
+            existing_user = _existing_user
+            break
+    logger.info("RU02 Possible to attach fb profile to user %s " % existing_user)
+    if existing_user:
+        new_fb_profile = FacebookUserProfile.objects.create(user=existing_user)
+        logger.info("RU03 Created new fb profile %s " % new_fb_profile)
+        new_user = existing_user
 
-    try:
-        # for new registration systems use the backends methods of saving
-        new_user = None
-        if backend:
-            new_user = backend.register(request,
-                                        form=form, **form.cleaned_data)
-        # fall back to the form approach
-        if new_user is None:
-            raise ValueError(
-                'new_user is None, note that backward compatability for the older versions of django registration has been dropped.')
-    except IntegrityError, e:
-        # this happens when users click multiple times, the first request registers
-        # the second one raises an error
-        raise facebook_exceptions.AlreadyRegistered(e)
+    if not existing_user:
+        logger.info("RU04 No existing user, need to create one")
+        if not form.is_valid():
+            # show errors in sentry
+            form_errors = form.errors
+            error = facebook_exceptions.IncompleteProfileError(
+                'Facebook signup incomplete')
+            error.form = form
+            raise error
+        try:
+            # for new registration systems use the backends methods of saving
+            if backend:
+                new_user = backend.register(request,
+                                            form=form, **form.cleaned_data)
+            # fall back to the form approach
+            if new_user is None:
+                raise ValueError(
+                    'new_user is None, note that backward compatability for the older versions of django registration has been dropped.')
+        except IntegrityError, e:
+            # this happens when users click multiple times, the first request registers
+            # the second one raises an error
+            raise facebook_exceptions.AlreadyRegistered(e)
 
-    signals.facebook_user_registered.send(sender=get_user_model(),
-                                          user=new_user, facebook_data=facebook_data, request=request)
+        signals.facebook_user_registered.send(sender=get_user_model(),
+                                              user=new_user, facebook_data=facebook_data, request=request)
 
     # update some extra data not yet done by the form
     new_user = _update_user(new_user, facebook)
