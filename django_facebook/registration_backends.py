@@ -102,7 +102,8 @@ class FacebookRegistrationBackend(NooptRegistrationBackend):
                                      request=request)
         # Create facebook user profile as we do not use special signal anymore
         FacebookUserProfile.objects.create(user=new_user)
-        authenticated_user = self.authenticate(request, email, '')
+        # Dirty fix to return user
+        authenticated_user = new_user
         return authenticated_user
 
     def authenticate(self, request, username, password):
