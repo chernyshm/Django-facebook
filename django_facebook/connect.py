@@ -263,10 +263,9 @@ def _register_user(request, facebook, profile_callback=None,
     form = form_class(data=data, files=request.FILES,
                       initial={'ip': request.META['REMOTE_ADDR']})
 
-    form.is_valid()
     # BONGOMAGIC-1005 We need to attach facebook user profile to the already registered users
     # We don't want to create new one and show form error
-    email = form.cleaned_data['email']
+    email = data['email']
     existing_users = User.objects.filter(email=email)
     logger.info("RU01 found users with email %s : %s " % (email, existing_users))
     existing_user = None
