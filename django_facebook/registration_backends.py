@@ -8,6 +8,8 @@ from django_facebook.utils import get_user_model, next_redirect, \
 from functools import partial
 from django.contrib.auth import get_backends
 
+from bongoregistration.models import FacebookUserProfile
+
 
 class NooptRegistrationBackend(object):
 
@@ -99,6 +101,8 @@ class FacebookRegistrationBackend(NooptRegistrationBackend):
         signals.user_registered.send(sender=self.__class__,
                                      user=new_user,
                                      request=request)
+        # Create facebook user profile as we do not use special signal anymore
+        FacebookUserProfile.objects.create(user=new_user)
         authenticated_user = self.authenticate(request, username, password)
         return authenticated_user
 
