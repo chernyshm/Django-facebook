@@ -16,6 +16,7 @@ from open_facebook import exceptions as open_facebook_exceptions
 from open_facebook.utils import send_warning
 import logging
 
+from bongolanding.utils import get_layout
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +96,10 @@ def _connect(request, graph):
 
             context['facebook_mode'] = True
             context['form'] = e.form
+            # Style register page
+            layout = get_layout(request=request)
+            logger.info('C06: Got layout %s' % layout)
+            context['layout'] = layout
             return render_to_response(
                 backend.get_registration_template(),
                 context_instance=context,
