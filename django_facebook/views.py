@@ -95,6 +95,8 @@ def _connect(request, graph):
                          facebook_data=facebook_data)
 
             context['facebook_mode'] = True
+            context['blocked_email'] = e.form.data['email']
+            e.form.data['email'] = u''
             context['form'] = e.form
             # Style register page
             layout = get_layout(request=request)
