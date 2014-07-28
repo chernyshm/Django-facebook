@@ -10,6 +10,8 @@ urlpatterns = patterns(
     url(r'^disconnect/$',
         'disconnect', name='facebook_disconnect'),
     url(r'^example/$', 'example', name='facebook_example'),
+    # Special url to warn clients that they are not allowed to login with fb from referrers page
+    url(r'^client_login/$', 'client_login', name='facebook_client_login'),
 )
 
 dev_patterns = patterns(

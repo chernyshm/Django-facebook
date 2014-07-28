@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.http import Http404
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template.context import RequestContext
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import csrf_exempt
@@ -86,6 +86,9 @@ def _connect(request, graph):
             action, user = connect_user(
                 request, connect_facebook=connect_facebook)
             logger.info('Django facebook performed action: %s', action)
+            # If client or subclient were detected redirect them to client login page
+            if action == CONNECT_ACTIONS.CLIENT_REDIRECT:
+                return redirect("facebook_client_login")
         except facebook_exceptions.IncompleteProfileError, e:
             # show them a registration form to add additional data
             warning_format = u'Incomplete profile data encountered with error %s'
@@ -158,3 +161,15 @@ def disconnect(request):
 def example(request):
     context = RequestContext(request)
     return render_to_response('django_facebook/example.html', context)
+
+
+def client_login(request):
+    """
+    We use it to warn clients that they are not allowed to login with fb from referrers page
+    """
+    template = "django_facebook/client_login.html"
+    context = RequestContext(request)
+    layout = get_layout(request=request)
+    logger.info('CL01: Got layout %s' % layout)
+    context['layout'] = layout
+    return render_to_response(template, context)

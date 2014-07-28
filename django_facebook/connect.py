@@ -35,6 +35,9 @@ class CONNECT_ACTIONS:
     class REGISTER:
         pass
 
+    class CLIENT_REDIRECT:
+        pass
+
 
 def connect_user(request, access_token=None, facebook_graph=None, connect_facebook=False):
     '''
@@ -97,6 +100,10 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
         auth_user = authenticate(facebook_id=facebook_data['id'], **kwargs)
         logger.info('CU19: Aunthenticated user %s ' % auth_user)
         if auth_user and not force_registration:
+            if auth_user.is_client() or auth_user.is_subclient():
+                action = CONNECT_ACTIONS.CLIENT_REDIRECT
+                logger.info('CU31: Client or subclient detected. Action: CLIENT_REDIRECT')
+                return action, auth_user
             action = CONNECT_ACTIONS.LOGIN
             logger.info('CU20: Action %s' % action)
             # Has the user registered without Facebook, using the verified FB
