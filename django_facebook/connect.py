@@ -278,7 +278,7 @@ def _register_user(request, facebook, profile_callback=None,
     existing_user = None
     new_user = None
     for _existing_user in existing_users:
-        if not _existing_user.is_client():
+        if not _existing_user.is_client() and not _existing_user.is_subclient():
             existing_user = _existing_user
             break
     logger.info("RU02 Possible to attach fb profile to user %s " % existing_user)
