@@ -6,7 +6,7 @@ Forms and validation code for user registration.
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 attrs_dict = {'class': 'required'}
 
@@ -25,7 +25,7 @@ class FacebookRegistrationFormUniqueEmail(forms.Form):
         Check if email is unique
         """
         email = self.cleaned_data['email']
-        all_users = User.objects.filter(email=email)
+        all_users = get_user_model().objects.filter(email=email)
         if all_users:
             raise forms.ValidationError(_("That email is already linked to your client account, please use another"))
         return email

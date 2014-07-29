@@ -1,5 +1,5 @@
 from django.contrib import auth
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import transaction
@@ -13,7 +13,6 @@ from django_facebook.utils import get_registration_backend, get_form_class, \
     get_user_attribute, try_get_profile, get_model_for_attribute,\
     get_instance_for_attribute, update_user_attributes
 from social_auth.models import UserSocialAuth
-from django.contrib.auth.models import User
 from random import randint
 import logging
 import sys
@@ -82,7 +81,7 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
         # social-auth support
         # trying to find social user with given email
         logger.info('CU10: Social auth support')
-        social_user = User.objects.filter(email=email)
+        social_user = get_user_model().objects.filter(email=email)
         logger.info('CU11: Social users found %s' % social_user)
         social_user = social_user[0] if social_user else None
         logger.info('CU12: Social user %s' % social_user)
@@ -273,7 +272,7 @@ def _register_user(request, facebook, profile_callback=None,
     # BONGOMAGIC-1005 We need to attach facebook user profile to the already registered users
     # We don't want to create new one and show form error
     email = data['email']
-    existing_users = User.objects.filter(email=email)
+    existing_users = get_user_model().objects.filter(email=email)
     logger.info("RU01 found users with email %s : %s " % (email, existing_users))
     existing_user = None
     new_user = None
