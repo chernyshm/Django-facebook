@@ -17,6 +17,7 @@ from random import randint
 import logging
 import sys
 import urllib2
+from urlparse import urlparse
 
 from bongoregistration.models import FacebookUserProfile
 
