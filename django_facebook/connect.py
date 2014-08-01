@@ -99,7 +99,14 @@ def connect_user(request, access_token=None, facebook_graph=None, connect_facebo
         auth_user = authenticate(facebook_id=facebook_data['id'], **kwargs)
         logger.info('CU19: Aunthenticated user %s ' % auth_user)
         if auth_user and not force_registration:
-            if auth_user.is_client() or auth_user.is_subclient():
+            referer_url = request.META.get('HTTP_REFERER', None)
+            if referer_url:
+                urlparsed = urlparse(referer_url)
+                is_facebook = urlparsed.netloc.endswith('facebook.com')
+            else:
+                is_facebook = False
+            logger.info('CU32 is_facebook: %s, referer_url: %s'%(is_facebook, referer_url))
+            if auth_user.is_client() or auth_user.is_subclient() and not is_facebook:
                 action = CONNECT_ACTIONS.CLIENT_REDIRECT
                 logger.info('CU31: Client or subclient detected. Action: CLIENT_REDIRECT')
                 return action, auth_user
